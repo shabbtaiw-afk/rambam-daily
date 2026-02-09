@@ -5,105 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>רמב"ם יומי - המעקב שלי</title>
     <style>
-        :root { --primary: #2c3e50; --secondary: #27ae60; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-        .card { background: white; width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; border-top: 10px solid var(--secondary); }
-        h1 { color: var(--primary); margin-bottom: 5px; font-size: 24px; }
-        .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 25px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary); }
-        input[type="date"] { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; text-align: center; }
-        button { background: var(--secondary); color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: transform 0.2s, background 0.2s; }
-        button:hover { background: #219150; transform: translateY(-2px); }
-        .result { margin-top: 30px; padding: 20px; background: #f9f9f9; border-radius: 15px; display: none; border-right: 6px solid var(--secondary); }
-        .book-name { font-size: 18px; color: #7f8c8d; }
-        .halacha-name { font-size: 22px; color: var(--primary); font-weight: bold; margin: 10px 0; }
-        .chapter-number { font-size: 48px; color: var(--secondary); font-weight: bold; }
-        .footer-info { margin-top: 15px; font-size: 13px; color: #bdc3c7; }
+        :root { --primary: #2c3e50; --accent: #27ae60; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+        .card { background: white; width: 90%; max-width: 450px; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; border-top: 8px solid var(--accent); }
+        h1 { color: var(--primary); margin-bottom: 5px; font-size: 22px; }
+        input { width: 100%; padding: 12px; margin: 20px 0; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; text-align: center; }
+        button { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: scale(0.98); }
+        .result { margin-top: 25px; padding: 20px; background: #f0fdf4; border-radius: 15px; display: none; }
+        .location { font-size: 20px; font-weight: bold; color: var(--primary); }
+        .chapter { font-size: 45px; color: var(--accent); font-weight: bold; margin: 10px 0; }
+        .details { font-size: 14px; color: #666; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <h1>מעקב רמב"ם יומי</h1>
-    <div class="subtitle">פרק אחד ביום - הספק של פעם בחיים</div>
+    <p style="color:#7f8c8d; font-size: 14px;">מסלול פרק אחד ביום</p>
+    
+    <input type="date" id="startInput">
+    <button onclick="calculate()">איפה אני היום?</button>
 
-    <label for="startDate">תאריך תחילת הסבב:</label>
-    <input type="date" id="startDate">
-    <button onclick="updateAndSave()">חשב מיקום נוכחי</button>
-
-    <div id="resultArea" class="result">
-        <div class="book-name" id="bookTitle"></div>
-        <div class="halacha-name" id="halachaTitle"></div>
-        <div class="chapter-number" id="perekTitle"></div>
-        <div class="footer-info" id="dayCounter"></div>
+    <div id="resBox" class="result">
+        <div id="locText" class="location"></div>
+        <div id="perekText" class="chapter"></div>
+        <div id="statsText" class="details"></div>
     </div>
 </div>
 
 <script>
-    // מיפוי מלא של כל 1000 פרקי הרמב"ם לפי סדר הספרים וההלכות
+    // רשימה מלאה של כל ספרי והלכות הרמב"ם (סה"כ 1000 פרקים)
     const rambamData = [
-        { book: "המדע", halachot: "יסודי התורה", ch: 10 }, { book: "המדע", halachot: "דעות", ch: 7 }, { book: "המדע", halachot: "תלמוד תורה", ch: 7 }, { book: "המדע", halachot: "עבודה זרה", ch: 12 }, { book: "המדע", halachot: "תשובה", ch: 10 },
-        { book: "אהבה", halachot: "קריאת שמע", ch: 4 }, { book: "אהבה", halachot: "תפילה", ch: 15 }, { book: "אהבה", halachot: "תפילין", ch: 10 }, { book: "אהבה", halachot: "ציצית", ch: 3 }, { book: "אהבה", halachot: "ברכות", ch: 11 }, { book: "אהבה", halachot: "מילה", ch: 3 },
-        { book: "זמנים", halachot: "שבת", ch: 30 }, { book: "זמנים", halachot: "עירובין", ch: 8 }, { book: "זמנים", halachot: "שביתת עשור", ch: 3 }, { book: "זמנים", halachot: "שביתת יו"ט", ch: 8 }, { book: "זמנים", halachot: "חמץ ומצה", ch: 8 }, { book: "זמנים", halachot: "שופר וסוכה", ch: 8 }, { book: "זמנים", halachot: "שקלים", ch: 4 }, { book: "זמנים", halachot: "קידוש החודש", ch: 19 }, { book: "זמנים", halachot: "תעניות", ch: 5 }, { book: "זמנים", halachot: "מגילה וחנוכה", ch: 4 },
-        { book: "נשים", halachot: "אישות", ch: 25 }, { book: "נשים", halachot: "גירושין", ch: 13 }, { book: "נשים", halachot: "יבום וחליצה", ch: 4 }, { book: "נשים", halachot: "נערה בתולה", ch: 3 }, { book: "נשים", halachot: "סוטה", ch: 4 },
-        { book: "קדושה", halachot: "איסורי ביאה", ch: 22 }, { book: "קדושה", halachot: "מאכלות אסורות", ch: 17 }, { book: "קדושה", halachot: "שחיטה", ch: 14 },
-        { book: "הפלאה", halachot: "שבועות", ch: 12 }, { book: "הפלאה", halachot: "נדרים", ch: 13 }, { book: "הפלאה", halachot: "נזירות", ch: 10 }, { book: "הפלאה", halachot: "ערכין וחרמין", ch: 8 },
-        { book: "זרעים", halachot: "כלאיים", ch: 10 }, { book: "זרעים", halachot: "מתנות עניים", ch: 10 }, { book: "זרעים", halachot: "תרומות", ch: 15 }, { book: "זרעים", halachot: "מעשר", ch: 14 }, { book: "זרעים", halachot: "מעשר שני", ch: 11 }, { book: "זרעים", halachot: "ביכורים", ch: 12 }, { book: "זרעים", halachot: "שמיטה ויובל", ch: 13 },
-        { book: "עבודה", halachot: "בית הבחירה", ch: 8 }, { book: "עבודה", halachot: "כלי המקדש", ch: 10 }, { book: "עבודה", halachot: "ביאת המקדש", ch: 9 }, { book: "עבודה", halachot: "איסורי מזבח", ch: 7 }, { book: "עבודה", halachot: "מעשה הקרבנות", ch: 19 }, { book: "עבודה", halachot: "תמידין ומוספין", ch: 10 }, { book: "עבודה", halachot: "פסולי המוקדשין", ch: 19 }, { book: "עבודה", halachot: "עבודת יוה"כ", ch: 5 }, { book: "עבודה", halachot: "מעילה", ch: 8 },
-        { book: "קרבנות", halachot: "קרבן פסח", ch: 10 }, { book: "קרבנות", halachot: "חגיגה", ch: 3 }, { book: "קרבנות", halachot: "בכורות", ch: 8 }, { book: "קרבנות", halachot: "שגגות", ch: 15 }, { book: "קרבנות", halachot: "מחוסרי כפרה", ch: 5 }, { book: "קרבנות", halachot: "תמורה", ch: 4 },
-        { book: "טהרה", halachot: "טומאת מת", ch: 25 }, { book: "טהרה", halachot: "פרה אדומה", ch: 15 }, { book: "טהרה", halachot: "טומאת צרעת", ch: 16 }, { book: "טהרה", halachot: "מטמאי משכב", ch: 13 }, { book: "טהרה", halachot: "שאר אבות הטומאות", ch: 20 }, { book: "טהרה", halachot: "טומאת אוכלין", ch: 16 }, { book: "טהרה", halachot: "כלים", ch: 28 }, { book: "טהרה", halachot: "מקואות", ch: 11 },
-        { book: "נזיקין", halachot: "נזקי ממון", ch: 14 }, { book: "נזיקין", halachot: "גניבה", ch: 9 }, { book: "נזיקין", halachot: "גזילה ואבידה", ch: 18 }, { book: "נזיקין", halachot: "חובל ומזיק", ch: 8 }, { book: "נזיקין", halachot: "רוצח ושמירת נפש", ch: 13 },
-        { book: "קניין", halachot: "מכירה", ch: 30 }, { book: "קניין", halachot: "זכייה ומתנה", ch: 12 }, { book: "קניין", halachot: "שכנים", ch: 14 }, { book: "קניין", halachot: "שותפין", ch: 10 }, { book: "קניין", halachot: "עבדים", ch: 9 },
-        { book: "משפטים", halachot: "שכירות", ch: 13 }, { book: "משפטים", halachot: "שאלה ופיקדון", ch: 8 }, { book: "משפטים", halachot: "מלווה ולווה", ch: 27 }, { book: "משפטים", halachot: "טוען ונטען", ch: 16 }, { book: "משפטים", halachot: "נחלות", ch: 11 },
-        { book: "שופטים", halachot: "סנהדרין", ch: 26 }, { book: "שופטים", halachot: "עדות", ch: 22 }, { book: "שופטים", halachot: "ממרים", ch: 7 }, { book: "שופטים", halachot: "אבל", ch: 14 }, { book: "שופטים", halachot: "מלכים ומלחמות", ch: 12 }
-    ];
-
-    window.onload = function() {
-        const savedDate = localStorage.getItem('rambamStart');
-        if (savedDate) {
-            document.getElementById('startDate').value = savedDate;
-            calculateCurrentPos();
-        }
-    }
-
-    function updateAndSave() {
-        const dateInput = document.getElementById('startDate').value;
-        if (dateInput) {
-            localStorage.setItem('rambamStart', dateInput);
-            calculateCurrentPos();
-        }
-    }
-
-    function calculateCurrentPos() {
-        const start = new Date(document.getElementById('startDate').value);
-        const today = new Date();
-        start.setHours(0,0,0,0);
-        today.setHours(0,0,0,0);
-
-        const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
-        if (diffDays < 0) return;
-
-        // פרק 1-1000
-        const currentPerekTotal = (diffDays % 1000) + 1;
-        
-        let count = 0;
-        let found = false;
-
-        for (const item of rambamData) {
-            if (currentPerekTotal <= count + item.ch) {
-                document.getElementById('bookTitle').innerText = "ספר " + item.book;
-                document.getElementById('halachaTitle').innerText = "הלכות " + item.halachot;
-                document.getElementById('perekTitle').innerText = "פרק " + (currentPerekTotal - count);
-                found = true;
-                break;
-            }
-            count += item.ch;
-        }
-
-        document.getElementById('dayCounter').innerText = "יום " + (diffDays + 1) + " למחזור הלימוד (פרק " + currentPerekTotal + " מתוך 1000)";
-        document.getElementById('resultArea').style.display = 'block';
-    }
-</script>
-
-</body>
-</html>
+        { b: "המדע", h: "יסודי התורה", c: 10 }, { b: "המדע", h: "דעות", c: 7 }, { b: "המדע", h: "תלמוד תורה", c: 7 }, { b: "המדע", h: "עבודה זרה", c: 12 }, { b: "המדע", h: "תשובה", c: 10 },
+        { b: "אהבה", h: "קריאת שמע", c: 4 }, { b: "אהבה", h: "תפילה", c: 15 }, { b: "אהבה", h: "תפילין", c: 10 }, { b: "אהבה", h: "ציצית", c: 3 }, { b: "אהבה", h: "ברכות", c: 11 }, { b: "אהבה", h: "מילה", c: 3 },
+        { b: "זמנים", h: "שבת", c: 30 }, { b: "זמנים", h: "עירובין", c: 8 }, { b: "זמנים", h: "שביתת עשור", c: 3 }, { b: "זמנים", h: "שביתת יו\"ט", c: 8 }, { b: "זמנים", h: "חמץ ומצה", c: 8 }, { b: "זמנים", h: "שופר וסוכה", c: 8 }, { b: "זמנים", h: "שקלים", c: 4 }, { b: "זמנים", h: "קידוש החודש", c: 19 }, { b: "זמנים", h: "תעניות", c: 5 }, { b: "זמנים", h: "מגילה וחנוכה", c: 4 },
+        { b: "נשים", h: "אישות", c: 25 }, { b: "נשים", h: "גירושין", c: 13 }, { b: "נשים", h: "יבום וחליצה", c: 4 }, { b: "נשים", h: "נערה בתולה", c: 3 }, { b: "נשים", h: "סוטה", c: 4 },
+        { b: "קדושה", h: "איסורי ביאה", c: 22 }, { b: "קדושה", h: "מאכלות אסורות", c: 17 }, { b: "קדושה", h: "שחיטה", c: 14 },
+        { b: "הפלאה", h: "שבועות", c: 12 }, { b: "הפלאה", h: "נדרים", c: 13 }, { b: "הפלאה", h: "נזירות", c: 10 }, { b: "הפלאה", h: "ערכין וחרמין", c: 8 },
+        { b: "זרעים", h: "כלאיים", c: 10 }, { b: "זרעים", h: "מתנות עניים", c: 10 }, { b: "זרעים", h: "תרומות", c: 15 }, { b: "זרעים", h: "מעשר", c: 14 }, { b: "זרעים", h: "מעשר שני", c: 11 }, { b: "זרעים", h: "ביכורים", c: 12 }, { b: "זרעים", h: "שמיטה ויובל", c: 13 },
+        { b: "עבודה", h: "בית הבחירה", c: 8 }, { b: "עבודה", h: "כלי המקדש", c: 10 }, { b: "עבודה", h: "ביאת המקדש", c: 9 }, { b: "עבודה", h: "איסורי מזבח", c: 7 }, { b: "עבודה", h: "מעשה הקרבנות", c: 19 }, { b: "עבודה", h: "תמידין ומוספין", c: 10 }, { b: "עבודה", h: "פסולי המוקדשין", c: 19 }, { b: "עבודה", h: "עבודת יוה\"כ", c: 5 }, { b: "עבודה", h: "מעילה", c: 8 },
+        { b: "קרבנות", h: "קרבן פסח", c: 10 }, { b: "קרבנות", h: "חגיגה", c: 3 }, { b: "קרבנות", h: "בכורות", c: 8 }, { b: "קרבנות", h: "שגגות", c: 15 }, { b: "קרבנות", h: "מחוסרי כפרה", c: 5 }, { b: "קרבנות", h: "תמורה", c: 4 },
+        { b: "טהרה", h: "טומאת מת", c: 25 }, { b: "טהרה", h: "פרה אדומה", c: 15 }, { b: "טהרה", h: "טומאת צרעת", c: 16 }, { b: "טהרה", h: "מטמאי משכב", c: 13 }, { b: "טהרה", h: "שאר אבות הטומאות", c: 20 }, { b: "טהרה", h: "טומאת אוכלין", c: 16 }, { b: "טהרה", h:
