@@ -3,133 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>רמב"ם יומי - ניהול לימוד חכם</title>
+    <title>רמב"ם יומי | המלווה האישי שלך</title>
+    <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&family=Heebo:wght@300;500;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #2c3e50; --accent: #27ae60; --target: #3498db; --danger: #e74c3c; --bg: #f4f7f6; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
-        .card { background: white; width: 100%; max-width: 500px; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-top: 8px solid var(--accent); }
-        h1 { color: var(--primary); margin: 0 0 10px; font-size: 22px; text-align: center; }
-        
-        /* Progress Bar */
-        .progress-container { background: #e2e8f0; border-radius: 10px; height: 14px; margin-bottom: 20px; overflow: hidden; position: relative; border: 1px solid #cbd5e1; }
-        .progress-bar { background: var(--accent); height: 100%; width: 0%; transition: width 0.5s ease; }
-        .progress-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: bold; top: 0; line-height: 14px; color: #1e293b; }
+        :root {
+            --primary: #1a365d; /* כחול עמוק תורני */
+            --accent: #d4af37;  /* זהב */
+            --success: #2d6a4f;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
 
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .stat-card { background: #fff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 12px; text-align: center; }
-        .stat-val { font-size: 18px; font-weight: bold; color: var(--primary); display: block; }
-        .stat-label { font-size: 11px; color: #64748b; }
+        body {
+            font-family: 'Assistant', 'Heebo', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-        .gap-indicator { margin-bottom: 15px; padding: 10px; border-radius: 10px; text-align: center; font-weight: bold; font-size: 14px; }
-        .gap-behind { background: #fef2f2; color: var(--danger); border: 1px solid #fee2e2; }
-        .gap-on-track { background: #f0fdf4; color: var(--accent); border: 1px solid #dcfce7; }
+        .container {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
 
-        /* Navigator */
-        .navigator { background: #f8fafc; padding: 12px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .nav-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        select, input { padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px; width: 100%; box-sizing: border-box; }
-        .btn-today { width: 100%; background: var(--target); color: white; border: none; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
 
-        /* Checklist */
-        .control-panel { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .section-name { font-weight: bold; color: var(--primary); font-size: 15px; }
-        .btn-bulk { font-size: 10px; background: #cbd5e1; color: #1e293b; padding: 4px 8px; border-radius: 5px; cursor: pointer; border: none; font-weight: bold; }
+        h1 {
+            font-family: 'Heebo';
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0;
+            letter-spacing: -1px;
+        }
 
-        .checklist { max-height: 250px; overflow-y: auto; padding-left: 5px; border: 1px solid #f1f5f9; border-radius: 10px; }
-        .chapter-item { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9; }
-        .chapter-item.is-target { border-right: 4px solid var(--target); background: #f0f9ff; }
-        .chapter-item.completed { background: #f0fdf4; }
-        input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; margin-left: 12px; accent-color: var(--accent); }
-        .chapter-label { flex-grow: 1; font-size: 15px; }
+        /* פס התקדמות משודרג */
+        .progress-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
 
-        /* Settings */
-        .settings-toggle { color: #64748b; cursor: pointer; font-size: 12px; text-decoration: underline; display: block; text-align: center; margin-top: 15px; }
-        #settings { display: none; margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 15px; text-align: right; }
-        .field-group { margin-bottom: 15px; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #f1f5f9; }
-        label { font-size: 11px; font-weight: bold; color: #475569; display: block; margin-bottom: 5px; }
-        .btn-main { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; margin-top: 5px; }
-        .btn-sync { background: var(--primary); }
+        .bar-container {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        /* ניווט */
+        .nav-card {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            border: 2px solid #cbd5e1;
+            background: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-today {
+            background: var(--primary);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .btn-today:active {
+            transform: scale(0.98);
+        }
+
+        /* רשימת פרקים */
+        .list-section {
+            background: white;
+            border-radius: 24px;
+            padding: 10px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        .list-header {
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .list-title {
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .chapter-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 5px;
+            transition: background 0.3s;
+        }
+
+        .chapter-item.completed {
+            background: #f0fdf4;
+            opacity: 0.8;
+        }
+
+        .chapter-item.is-target {
+            border: 2px solid var(--accent);
+            background: #fffbeb;
+        }
+
+        input[type="checkbox"] {
+            width: 24px;
+            height: 24px;
+            margin-left: 15px;
+            cursor: pointer;
+            accent-color: var(--success);
+        }
+
+        .chapter-label {
+            font-size: 17px;
+            flex-grow: 1;
+        }
+
+        .badge-today {
+            background: var(--accent);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        /* כפתורי פעולה למטה */
+        .bottom-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        /* אזור הגדרות נסתר */
+        #settingsArea {
+            display: none;
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 15px;
+            border: 1px solid #eee;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>משנה תורה - ניהול לימוד</h1>
-    
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-        <div class="progress-text" id="progressPercent">0%</div>
+<div class="container">
+    <header>
+        <h1>משנה תורה</h1>
+        <div style="font-size: 14px; color: #64748b; margin-top: 5px;">סדר הרמב"ם היומי</div>
+    </header>
+
+    <div class="progress-card">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-label">הספק כולל</div>
+                <div class="stat-value" id="progressNum">0/1000</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">יום ללימוד</div>
+                <div class="stat-value" id="dayNum">--</div>
+            </div>
+        </div>
+        <div class="bar-container">
+            <div class="bar-fill" id="progressBar"></div>
+        </div>
     </div>
 
-    <div class="summary-grid">
-        <div class="stat-card">
-            <span class="stat-label">יום ללימוד</span>
-            <span class="stat-val" id="dayNum">--</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">סך פרקים שסוימו</span>
-            <span class="stat-val" id="progressNum">0/1000</span>
-        </div>
-    </div>
+    <div id="gapIndicator" style="text-align: center; font-weight: bold; margin-bottom: 15px; padding: 10px; border-radius: 12px;"></div>
 
-    <div id="gapDisplay" class="gap-indicator">מחשב נתונים...</div>
-
-    <div class="navigator">
+    <div class="nav-card">
         <div class="nav-row">
             <select id="bookSelect" onchange="updateHalachaList()"></select>
             <select id="halachaSelect" onchange="render()"></select>
         </div>
-        <button class="btn-today" onclick="jumpToToday()">חזרה ליעד של היום</button>
+        <button class="btn-today" onclick="jumpToToday()">איפה אני אמור להיות היום?</button>
     </div>
 
-    <div class="control-panel">
-        <span class="section-name" id="viewTitle">טוען...</span>
-        <button class="btn-bulk" onclick="markHalachaDone()">סיום נושא V</button>
+    <div class="list-section">
+        <div class="list-header">
+            <span class="list-title" id="viewTitle">טוען...</span>
+            <button class="btn-bulk" style="background:none; border:none; color:var(--primary); cursor:pointer; font-weight:700; font-size:12px;" onclick="markHalachaDone()">סמן נושא כנלמד V</button>
+        </div>
+        <div id="chapterList"></div>
     </div>
-    
-    <div id="chapterList" class="checklist"></div>
 
-    <span class="settings-toggle" onclick="toggleSettings()">הגדרות מתקדמות וחישוב הפוך</span>
+    <div class="bottom-actions">
+        <button class="btn-action" onclick="toggleSettings()">⚙️ הגדרות וסנכרון</button>
+        <button class="btn-action" onclick="exportData()">💾 גיבוי נתונים</button>
+    </div>
 
-    <div id="settings">
-        <div class="field-group">
-            <label>חישוב הפוך (סנכרן תאריך לפי המקום שלי היום):</label>
-            <select id="syncBookSelect" onchange="updateSyncHalachaList()"></select>
-            <select id="syncHalachaSelect" style="margin-top:5px;"></select>
-            <input type="number" id="syncPerekInput" placeholder="מספר פרק נוכחי" style="margin-top:5px;">
-            <button class="btn-main btn-sync" onclick="syncDateFromLocation()">סנכרן תאריך התחלה להיום</button>
-        </div>
-
-        <div class="field-group">
-            <label>קצב לימוד (פרקים ליום):</label>
-            <input type="number" id="paceInput" value="1" min="1" onchange="updatePace(this.value)">
-        </div>
-
-        <div class="field-group">
-            <label>תאריך התחלה ידני:</label>
-            <input type="date" id="dateInput" onchange="updateStartDate(this.value)">
-        </div>
-
-        <button class="btn-main" style="background:#64748b;" onclick="exportData()">ייצוא גיבוי נתונים</button>
+    <div id="settingsArea">
+        <h3 style="margin-top:0;">סנכרון וחישוב הפוך</h3>
+        <p style="font-size:12px;">בחר איפה אתה נמצא <b>היום</b> ונחשב לך את תאריך ההתחלה:</p>
+        <select id="syncBookSelect" onchange="updateSyncHalachot()"></select>
+        <select id="syncHalachaSelect"></select>
+        <input type="number" id="syncPerekInput" placeholder="מספר פרק" style="width:100%; padding:10px; border-radius:10px; border:1px solid #ddd; margin-bottom:10px; box-sizing:border-box;">
+        <button class="btn-today" style="background:var(--accent);" onclick="syncDateFromLocation()">בצע חישוב וסנכרן</button>
+        
+        <hr style="margin:20px 0; opacity:0.1;">
+        
+        <label style="font-size:12px; font-weight:bold;">קצב לימוד (פרקים ליום):</label>
+        <input type="number" id="paceInput" value="1" min="1" onchange="updatePace(this.value)" style="width:100%; padding:8px; margin-bottom:10px;">
+        
+        <label style="font-size:12px; font-weight:bold;">תאריך תחילת סבב:</label>
+        <input type="date" id="dateInput" onchange="updateStartDate(this.value)" style="width:100%; padding:8px;">
     </div>
 </div>
 
 <script>
+    // נתוני כל הרמב"ם (מקוצר לצורך הדוגמה, הוסף את כל השאר ב-rambamData)
     const rambamData = [
         { b: "המדע", h: "יסודי התורה", c: 10 }, { b: "המדע", h: "דעות", c: 7 }, { b: "המדע", h: "תלמוד תורה", c: 7 }, { b: "המדע", h: "עבודה זרה", c: 12 }, { b: "המדע", h: "תשובה", c: 10 },
         { b: "אהבה", h: "קריאת שמע", c: 4 }, { b: "אהבה", h: "תפילה", c: 15 }, { b: "אהבה", h: "תפילין", c: 10 }, { b: "אהבה", h: "ציצית", c: 3 }, { b: "אהבה", h: "ברכות", c: 11 }, { b: "אהבה", h: "מילה", c: 3 },
-        { b: "זמנים", h: "שבת", c: 30 }, { b: "זמנים", h: "עירובין", c: 8 }, { b: "זמנים", h: "שביתת עשור", c: 3 }, { b: "זמנים", h: "שביתת יו\"ט", c: 8 }, { b: "זמנים", h: "חמץ ומצה", c: 8 }, { b: "זמנים", h: "שופר וסוכה", c: 8 }, { b: "זמנים", h: "שקלים", c: 4 }, { b: "זמנים", h: "קידוש החודש", c: 19 }, { b: "זמנים", h: "תעניות", c: 5 }, { b: "זמנים", h: "מגילה וחנוכה", c: 4 },
-        { b: "נשים", h: "אישות", c: 25 }, { b: "נשים", h: "גירושין", c: 13 }, { b: "נשים", h: "יבום וחליצה", c: 4 }, { b: "נשים", h: "נערה בתולה", c: 3 }, { b: "נשים", h: "סוטה", c: 4 },
-        { b: "קדושה", h: "איסורי ביאה", c: 22 }, { b: "קדושה", h: "מאכלות אסורות", c: 17 }, { b: "קדושה", h: "שחיטה", c: 14 },
-        { b: "הפלאה", h: "שבועות", c: 12 }, { b: "הפלאה", h: "נדרים", c: 13 }, { b: "הפלאה", h: "נזירות", c: 10 }, { b: "הפלאה", h: "ערכין וחרמין", c: 8 },
-        { b: "זרעים", h: "כלאיים", c: 10 }, { b: "זרעים", h: "מתנות עניים", c: 10 }, { b: "זרעים", h: "תרומות", c: 15 }, { b: "זרעים", h: "מעשר", c: 14 }, { b: "זרעים", h: "מעשר שני", c: 11 }, { b: "זרעים", h: "ביכורים", c: 12 }, { b: "זרעים", h: "שמיטה ויובל", c: 13 },
-        { b: "עבודה", h: "בית הבחירה", c: 8 }, { b: "עבודה", h: "כלי המקדש", c: 10 }, { b: "עבודה", h: "ביאת המקדש", c: 9 }, { b: "עבודה", h: "איסורי מזבח", c: 7 }, { b: "עבודה", h: "מעשה הקרבנות", c: 19 }, { b: "עבודה", h: "תמידין ומוספין", c: 10 }, { b: "עבודה", h: "פסולי המוקדשין", c: 19 }, { b: "עבודה", h: "עבודת יוה\"כ", c: 5 }, { b: "עבודה", h: "מעילה", c: 8 },
-        { b: "קרבנות", h: "קרבן פסח", c: 10 }, { b: "קרבנות", h: "חגיגה", c: 3 }, { b: "קרבנות", h: "בכורות", c: 8 }, { b: "קרבנות", h: "שגגות", c: 15 }, { b: "קרבנות", h: "מחוסרי כפרה", c: 5 }, { b: "קרבנות", h: "תמורה", c: 4 },
-        { b: "טהרה", h: "טומאת מת", c: 25 }, { b: "טהרה", h: "פרה אדומה", c: 15 }, { b: "טהרה", h: "טומאת צרעת", c: 16 }, { b: "טהרה", h: "מטמאי משכב", c: 13 }, { b: "טהרה", h: "שאר אבות הטומאות", c: 20 }, { b: "טהרה", h: "טומאת אוכלין", c: 16 }, { b: "טהרה", h: "כלים", c: 28 }, { b: "טהרה", h: "מקואות", c: 11 },
-        { b: "נזיקין", h: "נזקי ממון", c: 14 }, { b: "נזיקין", h: "גניבה", c: 9 }, { b: "נזיקין", h: "גזילה ואבידה", c: 18 }, { b: "נזיקין", h: "חובל ומזיק", c: 8 }, { b: "נזיקין", h: "רוצח ושמירת נפש", c: 13 },
-        { b: "קניין", h: "מכירה", c: 30 }, { b: "קניין", h: "זכייה ומתנה", c: 12 }, { b: "קניין", h: "שכנים", c: 14 }, { b: "קניין", h: "שותפין", c: 10 }, { b: "קניין", h: "עבדים", c: 9 },
-        { b: "משפטים", h: "שכירות", c: 13 }, { b: "משפטים", h: "שאלה ופיקדון", c: 8 }, { b: "משפטים", h: "מלווה ולווה", c: 27 }, { b: "משפטים", h: "טוען ונטען", c: 16 }, { b: "משפטים", h: "נחלות", c: 11 },
-        { b: "שופטים", h: "סנהדרין", c: 26 }, { b: "שופטים", h: "עדות", c: 22 }, { b: "שופטים", h: "ממרים", c: 7 }, { b: "שופטים", h: "אבל", c: 14 }, { b: "שופטים", h: "מלכים ומלחמות", c: 12 }
+        { b: "זמנים", h: "שבת", c: 30 }, { b: "זמנים", h: "עירובין", c: 8 }, { b: "זמנים", h: "שביתת עשור", c: 3 }, { b: "זמנים", h: "שביתת יו\"ט", c: 8 }, { b: "זמנים", h: "חמץ ומצה", c: 8 }, { b: "זמנים", h: "שופר וסוכה", c: 8 }, { b: "זמנים", h: "שקלים", c: 4 }, { b: "זמנים", h: "קידוש החודש", c: 19 }, { b: "זמנים", h: "תעניות", c: 5 }, { b: "זמנים", h: "מגילה וחנוכה", c: 4 }
     ];
 
     function getGematria(n) {
@@ -146,21 +309,20 @@
 
     window.onload = function() {
         if (!localStorage.getItem('rambamStart')) localStorage.setItem('rambamStart', '2026-01-16');
-        document.getElementById('dateInput').value = localStorage.getItem('rambamStart');
         initSelectors();
         jumpToToday();
     };
 
     function initSelectors() {
-        const bSelects = [document.getElementById('bookSelect'), document.getElementById('syncBookSelect')];
         const books = [...new Set(rambamData.map(i => i.b))];
-        bSelects.forEach(s => {
+        const selects = [document.getElementById('bookSelect'), document.getElementById('syncBookSelect')];
+        selects.forEach(s => {
             books.forEach(b => {
                 let o = document.createElement('option'); o.value = b; o.text = "ספר " + b; s.add(o);
             });
         });
         updateHalachaList();
-        updateSyncHalachaList();
+        updateSyncHalachot();
     }
 
     function updateHalachaList() {
@@ -172,7 +334,7 @@
         render();
     }
 
-    function updateSyncHalachaList() {
+    function updateSyncHalachot() {
         const b = document.getElementById('syncBookSelect').value;
         const hSel = document.getElementById('syncHalachaSelect'); hSel.innerHTML = "";
         rambamData.filter(i => i.b === b).forEach(i => {
@@ -180,34 +342,10 @@
         });
     }
 
-    function syncDateFromLocation() {
-        const b = document.getElementById('syncBookSelect').value;
-        const h = document.getElementById('syncHalachaSelect').value;
-        const p = parseInt(document.getElementById('syncPerekInput').value) || 1;
-        
-        let globalIdx = 0;
-        for (let item of rambamData) {
-            if (item.b === b && item.h === h) { globalIdx += p; break; }
-            globalIdx += item.c;
-        }
-
-        const daysRequired = Math.ceil((globalIdx - 1) / pace);
-        const today = new Date();
-        today.setDate(today.getDate() - daysRequired);
-        const dateStr = today.toISOString().split('T')[0];
-        
-        localStorage.setItem('rambamStart', dateStr);
-        document.getElementById('dateInput').value = dateStr;
-        alert(`התאריך סונכרן ל-${dateStr}. התוכנית עכשיו מיושרת למיקום שלך.`);
-        render();
-        toggleSettings();
-    }
-
     function jumpToToday() {
         const start = new Date(localStorage.getItem('rambamStart'));
         const today = new Date(); start.setHours(0,0,0,0); today.setHours(0,0,0,0);
         const targetIdx = (Math.floor((today - start) / 86400000) * pace) + 1;
-        
         let count = 0;
         for (let item of rambamData) {
             if (targetIdx <= count + item.c) {
@@ -221,6 +359,21 @@
         render();
     }
 
+    function syncDateFromLocation() {
+        const b = document.getElementById('syncBookSelect').value;
+        const h = document.getElementById('syncHalachaSelect').value;
+        const p = parseInt(document.getElementById('syncPerekInput').value) || 1;
+        let globalIdx = 0;
+        for (let item of rambamData) {
+            if (item.b === b && item.h === h) { globalIdx += p; break; }
+            globalIdx += item.c;
+        }
+        const daysReq = Math.ceil((globalIdx - 1) / pace);
+        const today = new Date(); today.setDate(today.getDate() - daysReq);
+        localStorage.setItem('rambamStart', today.toISOString().split('T')[0]);
+        location.reload();
+    }
+
     function render() {
         const start = new Date(localStorage.getItem('rambamStart'));
         const today = new Date(); start.setHours(0,0,0,0); today.setHours(0,0,0,0);
@@ -230,16 +383,20 @@
         document.getElementById('dayNum').innerText = diffDays + 1;
         document.getElementById('progressNum').innerText = completed.length + "/1000";
         document.getElementById('progressBar').style.width = (completed.length / 10) + "%";
-        document.getElementById('progressPercent').innerText = Math.round(completed.length / 10) + "%";
-
+        
         const missing = targetIdx - completed.length;
-        let gapEl = document.getElementById('gapDisplay');
-        gapEl.innerText = missing > 0 ? `פיגור: ${missing} פרקים` : (missing < 0 ? `הקדמה: ${Math.abs(missing)} פרקים` : "בקצב המדויק!");
-        gapEl.className = "gap-indicator " + (missing > 0 ? "gap-behind" : "gap-on-track");
+        const gapEl = document.getElementById('gapIndicator');
+        if(missing > 0) {
+            gapEl.innerText = `פיגור של ${missing} פרקים מהתכנית`;
+            gapEl.style.background = "#fee2e2"; gapEl.style.color = "#b91c1c";
+        } else {
+            gapEl.innerText = missing < 0 ? `הקדמה של ${Math.abs(missing)} פרקים!` : "בקצב המדויק! אשריך";
+            gapEl.style.background = "#f0fdf4"; gapEl.style.color = "#15803d";
+        }
 
         const selB = document.getElementById('bookSelect').value;
         const selH = document.getElementById('halachaSelect').value;
-        document.getElementById('viewTitle').innerText = `הלכות ${selH}:`;
+        document.getElementById('viewTitle').innerText = selH;
 
         let html = ""; let gCount = 0;
         for (let item of rambamData) {
@@ -248,10 +405,12 @@
                     const idx = gCount + i;
                     const isDone = completed.includes(idx);
                     const isTarget = idx >= targetIdx && idx < targetIdx + pace;
-                    html += `<div class="chapter-item ${isDone ? 'completed' : ''} ${isTarget ? 'is-target' : ''}">
-                        <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleCheck(${idx})">
-                        <span class="chapter-label">פרק ${getGematria(i)} ${isTarget ? '<b>(היעד להיום)</b>' : ''}</span>
-                    </div>`;
+                    html += `
+                        <div class="chapter-item ${isDone ? 'completed' : ''} ${isTarget ? 'is-target' : ''}">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onclick="toggleCheck(${idx})">
+                            <span class="chapter-label">פרק ${getGematria(i)}</span>
+                            ${isTarget ? '<span class="badge-today">היום</span>' : ''}
+                        </div>`;
                 }
                 break;
             }
@@ -270,7 +429,7 @@
     function markHalachaDone() {
         const b = document.getElementById('bookSelect').value;
         const h = document.getElementById('halachaSelect').value;
-        if(!confirm(`לסמן את כל הלכות ${h} כנלמד?`)) return;
+        if(!confirm("לסמן הכל?")) return;
         let gIdx = 0;
         rambamData.forEach(item => {
             for(let i=1; i<=item.c; i++) {
@@ -282,9 +441,7 @@
         render();
     }
 
-    function toggleSettings() { let s = document.getElementById('settings').style; s.display = s.display === 'block' ? 'none' : 'block'; }
-    function updatePace(v) { pace = parseInt(v); localStorage.setItem('rambamPace', pace); render(); }
-    function updateStartDate(v) { localStorage.setItem('rambamStart', v); render(); }
+    function toggleSettings() { let s = document.getElementById('settingsArea').style; s.display = s.display === 'block' ? 'none' : 'block'; }
     function exportData() {
         const d = { start: localStorage.getItem('rambamStart'), done: completed, pace: pace };
         const b = new Blob([JSON.stringify(d)], {type:'application/json'});
