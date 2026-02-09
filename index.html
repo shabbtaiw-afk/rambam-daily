@@ -13,24 +13,25 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;700&family=Heebo:wght@300;500;800&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #1a365d; --accent: #d4af37; --success: #2d6a4f; --bg: #f8fafc; --text: #1e293b; }
+        :root { --primary: #1a365d; --accent: #d4af37; --success: #2d6a4f; --danger: #e74c3c; --bg: #f8fafc; --text: #1e293b; }
         body { font-family: 'Assistant', sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 500px; margin-top: 10px; }
-        header { text-align: center; margin-bottom: 20px; }
+        header { text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-family: 'Heebo'; font-weight: 800; color: var(--primary); margin: 0; }
         .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .bar-container { height: 10px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin: 15px 0; }
-        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 0.8s; }
+        .bar-container { height: 12px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin: 15px 0; position: relative; }
+        .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 0.8s ease; }
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
         .stat-val { font-size: 18px; font-weight: 700; color: var(--primary); }
         .stat-lab { font-size: 11px; color: #64748b; }
-        select, input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid #cbd5e1; margin-bottom: 8px; font-family: inherit; }
+        select, input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 8px; font-family: inherit; background: #fff; }
         .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; }
         .checklist { max-height: 300px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 15px; padding: 5px; }
-        .chapter-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 4px; border-bottom: 1px solid #f8fafc; }
+        .chapter-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 4px; }
         .chapter-item.completed { background: #f0fdf4; }
         .chapter-item.is-target { border: 2px solid var(--accent); background: #fffbeb; }
         input[type="checkbox"] { width: 22px; height: 22px; margin-left: 12px; accent-color: var(--success); cursor: pointer; }
+        .chapter-label { flex-grow: 1; font-size: 17px; }
         .settings-area { display: none; padding-top: 15px; border-top: 1px dashed #ddd; margin-top: 15px; }
     </style>
 </head>
@@ -58,7 +59,7 @@
             <select id="bookSelect" onchange="updateHalacha()"></select>
             <select id="halachaSelect" onchange="render()"></select>
         </div>
-        <button class="btn" style="background: var(--target);" onclick="jumpToToday()">איפה אני אמור להיות?</button>
+        <button class="btn" onclick="jumpToToday()">איפה אני אמור להיות היום?</button>
     </div>
 
     <div class="card">
@@ -69,21 +70,25 @@
         <div id="chapterList" class="checklist"></div>
     </div>
 
-    <button onclick="toggleSettings()" style="background: none; border: none; color: #64748b; font-size: 12px; cursor: pointer; width: 100%; text-decoration: underline;">הגדרות וסנכרון מיקום</button>
+    <button onclick="toggleSettings()" style="background: none; border: none; color: #64748b; font-size: 12px; cursor: pointer; width: 100%; text-decoration: underline; margin-bottom: 20px;">הגדרות וסנכרון מיקום</button>
 
     <div id="settings" class="card settings-area">
-        <b style="font-size: 14px; display: block; margin-bottom: 10px;">חישוב הפוך - איפה אתה היום?</b>
+        <b style="font-size: 14px; display: block; margin-bottom: 10px;">חישוב הפוך - איפה אתה אוחז היום?</b>
         <select id="syncBook" onchange="updateSyncHalacha()"></select>
-        <select id="syncHalacha"></select>
-        <input type="number" id="syncPerek" placeholder="מספר פרק נוכחי">
-        <button class="btn" onclick="syncFromLocation()">סנכרן תאריך להיום</button>
+        <select id="syncHalacha" onchange="updateSyncPerekList()"></select>
+        <select id="syncPerekSelect"></select>
+        <button class="btn" style="background: var(--accent);" onclick="syncFromLocation()">סנכרן תוכנית להיום</button>
         <hr style="margin: 15px 0; opacity: 0.1;">
         <label style="font-size: 11px; font-weight: bold;">קצב (פרקים ליום):</label>
         <input type="number" id="paceInput" value="1" min="1" onchange="updatePace(this.value)">
+        <label style="font-size: 11px; font-weight: bold; margin-top: 10px;">תאריך התחלה ידני:</label>
+        <input type="date" id="dateInput" onchange="updateStartDate(this.value)">
+        <button class="btn" style="background: #64748b; margin-top: 10px;" onclick="exportData()">גיבוי נתונים</button>
     </div>
 </div>
 
 <script>
+    // נתונים מלאים של כל 1000 הפרקים
     const rambamData = [
         { b: "המדע", h: "יסודי התורה", c: 10 }, { b: "המדע", h: "דעות", c: 7 }, { b: "המדע", h: "תלמוד תורה", c: 7 }, { b: "המדע", h: "עבודה זרה", c: 12 }, { b: "המדע", h: "תשובה", c: 10 },
         { b: "אהבה", h: "קריאת שמע", c: 4 }, { b: "אהבה", h: "תפילה", c: 15 }, { b: "אהבה", h: "תפילין", c: 10 }, { b: "אהבה", h: "ציצית", c: 3 }, { b: "אהבה", h: "ברכות", c: 11 }, { b: "אהבה", h: "מילה", c: 3 },
@@ -115,6 +120,7 @@
 
     window.onload = function() {
         if (!localStorage.getItem('rambamStart')) localStorage.setItem('rambamStart', '2026-01-16');
+        document.getElementById('dateInput').value = localStorage.getItem('rambamStart');
         init(); jumpToToday();
     };
 
@@ -139,26 +145,41 @@
         rambamData.filter(i => i.b === document.getElementById('syncBook').value).forEach(i => {
             let o = document.createElement('option'); o.value = i.h; o.text = "הלכות " + i.h; hSel.add(o);
         });
+        updateSyncPerekList();
+    }
+
+    function updateSyncPerekList() {
+        const b = document.getElementById('syncBook').value;
+        const h = document.getElementById('syncHalacha').value;
+        const pSel = document.getElementById('syncPerekSelect'); pSel.innerHTML = "";
+        const unit = rambamData.find(i => i.b === b && i.h === h);
+        if (unit) {
+            for (let i = 1; i <= unit.c; i++) {
+                let o = document.createElement('option'); o.value = i; o.text = "פרק " + getGematria(i); pSel.add(o);
+            }
+        }
     }
 
     function syncFromLocation() {
         const b = document.getElementById('syncBook').value;
         const h = document.getElementById('syncHalacha').value;
-        const p = parseInt(document.getElementById('syncPerek').value) || 1;
+        const p = parseInt(document.getElementById('syncPerekSelect').value);
         let global = 0;
         for (let i of rambamData) {
             if (i.b === b && i.h === h) { global += p; break; }
             global += i.c;
         }
         const days = Math.ceil((global - 1) / pace);
-        const d = new Date(); d.setDate(d.getDate() - days);
+        const d = new Date(); d.setHours(0,0,0,0);
+        d.setDate(d.getDate() - days);
         localStorage.setItem('rambamStart', d.toISOString().split('T')[0]);
         location.reload();
     }
 
     function jumpToToday() {
         const start = new Date(localStorage.getItem('rambamStart'));
-        const target = (Math.floor((new Date().setHours(0,0,0,0) - start) / 86400000) * pace) + 1;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const target = (Math.floor((today - start) / 86400000) * pace) + 1;
         let c = 0;
         for (let i of rambamData) {
             if (target <= c + i.c) { document.getElementById('bookSelect').value = i.b; updateHalacha(); document.getElementById('halachaSelect').value = i.h; break; }
@@ -169,8 +190,10 @@
 
     function render() {
         const start = new Date(localStorage.getItem('rambamStart'));
-        const day = Math.floor((new Date().setHours(0,0,0,0) - start) / 86400000) + 1;
-        const target = ((day-1) * pace) + 1;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diffDays = Math.floor((today - start) / 86400000);
+        const day = diffDays + 1;
+        const target = (diffDays * pace) + 1;
         
         document.getElementById('dayDisplay').innerText = day;
         document.getElementById('totalDisplay').innerText = completed.length + "/1000";
@@ -178,8 +201,9 @@
 
         const lag = target - completed.length;
         const gMsg = document.getElementById('gapMsg');
-        gMsg.innerText = lag > 0 ? `פיגור: ${lag} פרקים` : (lag < 0 ? `הקדמה: ${Math.abs(lag)} פרקים!` : "בקצב המדויק!");
-        gMsg.style.color = lag > 0 ? "var(--danger)" : "var(--success)";
+        if (lag > 0) { gMsg.innerText = `פיגור: ${lag} פרקים מהתכנית`; gMsg.style.color = "var(--danger)"; }
+        else if (lag < 0) { gMsg.innerText = `הקדמה: ${Math.abs(lag)} פרקים!`; gMsg.style.color = "var(--success)"; }
+        else { gMsg.innerText = "בקצב המדויק! אשריך"; gMsg.style.color = "var(--success)"; }
 
         const b = document.getElementById('bookSelect').value;
         const h = document.getElementById('halachaSelect').value;
@@ -194,7 +218,7 @@
                     const isTarget = idx >= target && idx < target + pace;
                     html += `<div class="chapter-item ${done?'completed':''} ${isTarget?'is-target':''}">
                         <input type="checkbox" ${done?'checked':''} onclick="toggle(${idx})">
-                        <span class="chapter-label">פרק ${getGematria(p)} ${isTarget?'<b>(היום)</b>':''}</span>
+                        <span class="chapter-label">פרק ${getGematria(p)} ${isTarget?'<b style="color:var(--accent); font-size:11px;">(היעד)</b>':''}</span>
                     </div>`;
                 } break;
             } gc += i.c;
@@ -212,7 +236,7 @@
     function markAllDone() {
         const b = document.getElementById('bookSelect').value;
         const h = document.getElementById('halachaSelect').value;
-        if(!confirm("לסמן נושא כנלמד?")) return;
+        if(!confirm(`לסמן את כל הלכות ${h} כנלמד?`)) return;
         let gc = 0;
         rambamData.forEach(item => {
             for(let p=1; p<=item.c; p++) {
@@ -233,10 +257,7 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'rambam_backup.json'; a.click();
     }
     
-    // רישום לאופליין
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
-    }
+    if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
 </script>
 </body>
 </html>
