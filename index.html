@@ -18,21 +18,27 @@
         .container { width: 100%; max-width: 500px; margin-top: 10px; }
         header { text-align: center; margin-bottom: 20px; display: flex; flex-direction: column; align-items: center; }
         h1 { font-family: 'Heebo'; font-weight: 800; color: var(--primary); margin: 0; }
-        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .card { background: white; padding: 20px; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #eee; }
         .bar-container { height: 12px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin: 15px 0; position: relative; }
         .bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 0.8s ease; }
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
         .stat-val { font-size: 18px; font-weight: 700; color: var(--primary); }
         .stat-lab { font-size: 11px; color: #64748b; }
-        select, input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 8px; font-family: inherit; background: #fff; }
-        .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; }
-        .checklist { max-height: 300px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 15px; padding: 5px; }
+        select, input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 8px; font-family: inherit; background: #fff; outline: none; }
+        .btn { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 5px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .checklist { max-height: 320px; overflow-y: auto; border: 1px solid #f1f5f9; border-radius: 15px; padding: 5px; }
         .chapter-item { display: flex; align-items: center; padding: 12px; border-radius: 10px; margin-bottom: 4px; }
         .chapter-item.completed { background: #f0fdf4; }
         .chapter-item.is-target { border: 2px solid var(--accent); background: #fffbeb; }
         input[type="checkbox"] { width: 22px; height: 22px; margin-left: 12px; accent-color: var(--success); cursor: pointer; }
-        .chapter-label { flex-grow: 1; font-size: 17px; }
-        .settings-area { display: none; padding-top: 15px; border-top: 1px dashed #ddd; margin-top: 15px; }
+        .chapter-label { flex-grow: 1; font-size: 17px; font-weight: 500; }
+        .btn-learn { background: none; border: 1.5px solid var(--accent); color: var(--accent); padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
+        .settings-toggle-btn { background: none; border: 1px solid #cbd5e1; color: #64748b; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; margin: 10px auto 30px; }
+        .settings-area { display: none; background: #fdfdfd; border: 1px solid #e2e8f0; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .settings-section-title { font-size: 14px; font-weight: 800; color: var(--primary); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .setting-row { margin-bottom: 15px; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #f1f5f9; }
+        label { font-size: 11px; font-weight: 700; color: #64748b; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
@@ -48,146 +54,92 @@
     <div class="card">
         <div class="stats">
             <div class="stat-item"><span class="stat-lab">יום ללימוד</span><span class="stat-val" id="dayDisplay">--</span></div>
-            <div class="stat-item"><span class="stat-lab">הספק כולל</span><span class="stat-val" id="totalDisplay">0/1000</span></div>
+            <div class="stat-item"><span class="stat-lab">הספק (פרקים)</span><span class="stat-val" id="totalDisplay">0/1000</span></div>
         </div>
         <div class="bar-container"><div class="bar-fill" id="progressBar"></div></div>
         <div id="gapMsg" style="font-size: 13px; text-align: center; font-weight: 700;"></div>
     </div>
 
-    <div class="card" style="background: #f1f5f9;">
+    <div class="card" style="background: #f1f5f9; border: none;">
         <div style="display: flex; gap: 5px; margin-bottom: 10px;">
             <select id="bookSelect" onchange="updateHalacha()"></select>
             <select id="halachaSelect" onchange="render()"></select>
         </div>
-        <button class="btn" onclick="jumpToToday()">איפה אני אמור להיות היום?</button>
+        <button class="btn" onclick="jumpToToday()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            קפוץ ליעד של היום
+        </button>
     </div>
 
     <div class="card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <b id="listTitle">הלכות</b>
-            <button onclick="markAllDone()" style="background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; font-size: 12px;">סיום נושא V</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <b id="listTitle" style="color:var(--primary); font-size: 18px;">הלכות</b>
+            <button onclick="markAllDone()" style="background:none; border:none; color:var(--primary); font-weight:700; cursor:pointer; font-size:12px; text-decoration: underline;">סיום נושא V</button>
         </div>
         <div id="chapterList" class="checklist"></div>
     </div>
 
-    <button onclick="toggleSettings()" style="background: none; border: none; color: #64748b; font-size: 12px; cursor: pointer; width: 100%; text-decoration: underline; margin-bottom: 20px;">הגדרות וסנכרון מיקום</button>
+    <button class="settings-toggle-btn" onclick="toggleSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        הגדרות וסנכרון תוכנית
+    </button>
 
     <div id="settings" class="card settings-area">
-        <b style="font-size: 14px; display: block; margin-bottom: 10px;">חישוב הפוך - איפה אתה אוחז היום?</b>
-        <select id="syncBook" onchange="updateSyncHalacha()"></select>
-        <select id="syncHalacha" onchange="updateSyncPerekList()"></select>
-        <select id="syncPerekSelect"></select>
-        <button class="btn" style="background: var(--accent);" onclick="syncFromLocation()">סנכרן תוכנית להיום</button>
-        <hr style="margin: 15px 0; opacity: 0.1;">
-        <label style="font-size: 11px; font-weight: bold;">קצב (פרקים ליום):</label>
-        <input type="number" id="paceInput" value="1" min="1" onchange="updatePace(this.value)">
-        <label style="font-size: 11px; font-weight: bold; margin-top: 10px;">תאריך התחלה ידני:</label>
-        <input type="date" id="dateInput" onchange="updateStartDate(this.value)">
-        <button class="btn" style="background: #64748b; margin-top: 10px;" onclick="exportData()">גיבוי נתונים</button>
+        <div class="settings-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+            תזכורת יומית
+        </div>
+        <div class="setting-row">
+            <label>קבל התראה בשעה:</label>
+            <input type="time" id="reminderTime" onchange="updateReminderTime(this.value)">
+            <button class="btn" style="background:var(--success); font-size: 12px;" onclick="requestNotificationPermission()">
+                🔔 הפעל תזכורות במכשיר זה
+            </button>
+        </div>
+
+        <div class="settings-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            סנכרון מיקום (חישוב הפוך)
+        </div>
+        <div class="setting-row">
+            <select id="syncBook" onchange="updateSyncHalacha()"></select>
+            <select id="syncHalacha" onchange="updateSyncPerekList()"></select>
+            <select id="syncPerekSelect" style="margin-bottom: 12px;"></select>
+            <button class="btn" style="background:var(--accent);" onclick="syncFromLocation()">עדכן תאריך לפי המיקום שלי</button>
+        </div>
+
+        <div class="settings-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            הגדרות לימוד
+        </div>
+        <div class="setting-row">
+            <label>קצב (פרקים ליום):</label>
+            <input type="number" id="paceInput" value="1" min="1" onchange="updatePace(this.value)">
+            <label style="margin-top: 10px;">תאריך התחלה ידני:</label>
+            <input type="date" id="dateInput" onchange="updateStartDate(this.value)">
+        </div>
+        
+        <button class="btn" style="background:#64748b;" onclick="exportData()">💾 גיבוי נתונים לקובץ</button>
     </div>
 </div>
 
 <script>
-    // נתונים מלאים של כל 1000 הפרקים
-    const rambamData = const rambamData = [
-    // ספר המדע
-    { b: "המדע", h: "יסודי התורה", c: 10, s: "Foundations_of_the_Torah" },
-    { b: "המדע", h: "דעות", c: 7, s: "Ethical_Ideas" },
-    { b: "המדע", h: "תלמוד תורה", c: 7, s: "Study_of_the_Torah" },
-    { b: "המדע", h: "עבודה זרה", c: 12, s: "Foreign_Worship_and_Customs_of_the_Nations" },
-    { b: "המדע", h: "תשובה", c: 10, s: "Repentance" },
-    // ספר אהבה
-    { b: "אהבה", h: "קריאת שמע", c: 4, s: "Reading_the_Shema" },
-    { b: "אהבה", h: "תפילה", c: 15, s: "Prayer_and_the_Priestly_Blessing" },
-    { b: "אהבה", h: "תפילין", c: 10, s: "Tefillin,_Mezuzah_and_the_Torah_Scroll" },
-    { b: "אהבה", h: "ציצית", c: 3, s: "Fringes" },
-    { b: "אהבה", h: "ברכות", c: 11, s: "Blessings" },
-    { b: "אהבה", h: "מילה", c: 3, s: "Circumcision" },
-    // ספר זמנים
-    { b: "זמנים", h: "שבת", c: 30, s: "Sabbath" },
-    { b: "זמנים", h: "עירובין", c: 8, s: "Eruvin" },
-    { b: "זמנים", h: "שביתת עשור", c: 3, s: "Rest_on_the_Tenth" },
-    { b: "זמנים", h: "שביתת יו\"ט", c: 8, s: "Rest_on_a_Holiday" },
-    { b: "זמנים", h: "חמץ ומצה", c: 8, s: "Leavened_and_Unleavened_Bread" },
-    { b: "זמנים", h: "שופר וסוכה", c: 8, s: "Shofar,_Sukkah_and_Lulav" },
-    { b: "זמנים", h: "שקלים", c: 4, s: "Levying_of_Half-Shekels" },
-    { b: "זמנים", h: "קידוש החודש", c: 19, s: "Sanctification_of_the_New_Month" },
-    { b: "זמנים", h: "תעניות", c: 5, s: "Fasts" },
-    { b: "זמנים", h: "מגילה וחנוכה", c: 4, s: "Megillah_and_Hanukkah" },
-    // ספר נשים
-    { b: "נשים", h: "אישות", c: 25, s: "Marriage" },
-    { b: "נשים", h: "גירושין", c: 13, s: "Divorce" },
-    { b: "נשים", h: "יבום וחליצה", c: 20, s: "Levirate_Marriage_and_Release" },
-    { b: "נשים", h: "נערה בתולה", c: 3, s: "Virgin_Maiden" },
-    { b: "נשים", h: "סוטה", c: 4, s: "Woman_Suspected_of_Infidelity" },
-    // ספר קדושה
-    { b: "קדושה", h: "איסורי ביאה", c: 22, s: "Forbidden_Intercourse" },
-    { b: "קדושה", h: "מאכלות אסורות", c: 17, s: "Forbidden_Foods" },
-    { b: "קדושה", h: "שחיטה", c: 14, s: "Ritual_Slaughter" },
-    // ספר הפלאה
-    { b: "הפלאה", h: "שבועות", c: 12, s: "Oaths" },
-    { b: "הפלאה", h: "נדרים", c: 13, s: "Vows" },
-    { b: "הפלאה", h: "נזירות", c: 10, s: "Nazirite_Vows" },
-    { b: "הפלאה", h: "ערכין וחרמין", c: 8, s: "Valuations_and_Devoted_Property" },
-    // ספר זרעים
-    { b: "זרעים", h: "כלאיים", c: 10, s: "Mixtures" },
-    { b: "זרעים", h: "מתנות עניים", c: 10, s: "Gifts_to_the_Poor" },
-    { b: "זרעים", h: "תרומות", c: 15, s: "Heave_Offerings" },
-    { b: "זרעים", h: "מעשר", c: 14, s: "Tithes" },
-    { b: "זרעים", h: "מעשר שני", c: 11, s: "Second_Tithes_and_Fourth_Year's_Fruit" },
-    { b: "זרעים", h: "ביכורים", c: 12, s: "First_Fruits_and_other_Gifts_to_the_Priesthood_in_the_Territories" },
-    { b: "זרעים", h: "שמיטה ויובל", c: 13, s: "Sabbatical_and_Jubilee_Years" },
-    // ספר עבודה
-    { b: "עבודה", h: "בית הבחירה", c: 8, s: "The_Chosen_Temple" },
-    { b: "עבודה", h: "כלי המקדש", c: 10, s: "Vessels_of_the_Sanctuary_and_Those_who_Serve_Therein" },
-    { b: "עבודה", h: "ביאת המקדש", c: 9, s: "Entrance_into_the_Sanctuary" },
-    { b: "עבודה", h: "איסורי מזבח", c: 7, s: "Things_Forbidden_offered_upon_the_Altar" },
-    { b: "עבודה", h: "מעשה הקרבנות", c: 19, s: "Sacrificial_Procedure" },
-    { b: "עבודה", h: "תמידין ומוספין", c: 10, s: "Daily_Offerings_and_Additional_Offerings" },
-    { b: "עבודה", h: "פסולי המוקדשין", c: 19, s: "Disqualified_Consecrated_Offerings" },
-    { b: "עבודה", h: "עבודת יוה\"כ", c: 5, s: "Service_of_the_Day_of_Atonement" },
-    { b: "עבודה", h: "מעילה", c: 8, s: "Trespass" },
-    // ספר קרבנות
-    { b: "קרבנות", h: "קרבן פסח", c: 10, s: "Paschal_Offering" },
-    { b: "קרבנות", h: "חגיגה", c: 3, s: "Festival_Offering" },
-    { b: "קרבנות", h: "בכורות", c: 8, s: "Firstborns" },
-    { b: "קרבנות", h: "שגגות", c: 15, s: "Offerings_for_Unintentional_Transgressions" },
-    { b: "קרבנות", h: "מחוסרי כפרה", c: 5, s: "Those_Whose_Atonement_is_Incomplete" },
-    { b: "קרבנות", h: "תמורה", c: 4, s: "Substitution" },
-    // ספר טהרה
-    { b: "טהרה", h: "טומאת מת", c: 25, s: "Uncleanness_of_the_Dead" },
-    { b: "טהרה", h: "פרה אדומה", c: 15, s: "Red_Heifer" },
-    { b: "טהרה", h: "טומאת צרעת", c: 16, s: "Uncleanness_of_Leprosy" },
-    { b: "טהרה", h: "מטמאי משכב", c: 13, s: "Those_Who_Defile_Bed_or_Seat" },
-    { b: "טהרה", h: "שאר אבות הטומאות", c: 20, s: "Other_Primary_Sources_of_Uncleanness" },
-    { b: "טהרה", h: "טומאת אוכלין", c: 16, s: "Uncleanness_of_Foodstuffs" },
-    { b: "טהרה", h: "כלים", c: 28, s: "Vessels" },
-    { b: "טהרה", h: "מקואות", c: 11, s: "Immersion_Pools" },
-    // ספר נזיקין
-    { b: "נזיקין", h: "נזקי ממון", c: 14, s: "Damages_to_Property" },
-    { b: "נזיקין", h: "גניבה", c: 9, s: "Theft" },
-    { b: "נזיקין", h: "גזילה ואבידה", c: 18, s: "Robbery_and_Lost_Property" },
-    { b: "נזיקין", h: "חובל ומזיק", c: 8, s: "One_Who_Injures_a_Person_or_Damages_Property" },
-    { b: "נזיקין", h: "רוצח ושמירת נפש", c: 13, s: "Murder_and_the_Preservation_of_Life" },
-    // ספר קניין
-    { b: "קניין", h: "מכירה", c: 30, s: "Sales" },
-    { b: "קניין", h: "זכייה ומתנה", c: 12, s: "Original_Acquisition_and_Gifts" },
-    { b: "קניין", h: "שכנים", c: 14, s: "Neighbors" },
-    { b: "קניין", h: "שותפין", c: 10, s: "Partners" },
-    { b: "קניין", h: "עבדים", c: 9, s: "Slaves" },
-    // ספר משפטים
-    { b: "משפטים", h: "שכירות", c: 13, s: "Hiring" },
-    { b: "משפטים", h: "שאלה ופיקדון", c: 8, s: "Borrowing_and_Deposit" },
-    { b: "משפטים", h: "מלווה ולווה", c: 27, s: "Creditor_and_Debtor" },
-    { b: "משפטים", h: "טוען ונטען", c: 16, s: "Plaintiff_and_Defendant" },
-    { b: "משפטים", h: "נחלות", c: 11, s: "Inheritances" },
-    // ספר שופטים
-    { b: "שופטים", h: "סנהדרין", c: 26, s: "The_Sanhedrin_and_the_Penalties_within_their_Jurisdiction" },
-    { b: "שופטים", h: "עדות", c: 22, s: "Testimony" },
-    { b: "שופטים", h: "ממרים", c: 7, s: "Rebels" },
-    { b: "שופטים", h: "אבל", c: 14, s: "Mourning" },
-    { b: "שופטים", h: "מלכים ומלחמות", c: 12, s: "Kings_and_Wars" }
-];
+    const rambamData = [
+        { b: "המדע", h: "יסודי התורה", c: 10, s: "Foundations_of_the_Torah" }, { b: "המדע", h: "דעות", c: 7, s: "Ethical_Ideas" }, { b: "המדע", h: "תלמוד תורה", c: 7, s: "Study_of_the_Torah" }, { b: "המדע", h: "עבודה זרה", c: 12, s: "Foreign_Worship_and_Customs_of_the_Nations" }, { b: "המדע", h: "תשובה", c: 10, s: "Repentance" },
+        { b: "אהבה", h: "קריאת שמע", c: 4, s: "Reading_the_Shema" }, { b: "אהבה", h: "תפילה", c: 15, s: "Prayer_and_the_Priestly_Blessing" }, { b: "אהבה", h: "תפילין", c: 10, s: "Tefillin,_Mezuzah_and_the_Torah_Scroll" }, { b: "אהבה", h: "ציצית", c: 3, s: "Fringes" }, { b: "אהבה", h: "ברכות", c: 11, s: "Blessings" }, { b: "אהבה", h: "מילה", c: 3, s: "Circumcision" },
+        { b: "זמנים", h: "שבת", c: 30, s: "Sabbath" }, { b: "זמנים", h: "עירובין", c: 8, s: "Eruvin" }, { b: "זמנים", h: "שביתת עשור", c: 3, s: "Rest_on_the_Tenth" }, { b: "זמנים", h: "שביתת יו\"ט", c: 8, s: "Rest_on_a_Holiday" }, { b: "זמנים", h: "חמץ ומצה", c: 8, s: "Leavened_and_Unleavened_Bread" }, { b: "זמנים", h: "שופר וסוכה", c: 8, s: "Shofar,_Sukkah_and_Lulav" }, { b: "זמנים", h: "שקלים", c: 4, s: "Levying_of_Half-Shekels" }, { b: "זמנים", h: "קידוש החודש", c: 19, s: "Sanctification_of_the_New_Month" }, { b: "זמנים", h: "תעניות", c: 5, s: "Fasts" }, { b: "זמנים", h: "מגילה וחנוכה", c: 4, s: "Megillah_and_Hanukkah" },
+        { b: "נשים", h: "אישות", c: 25, s: "Marriage" }, { b: "נשים", h: "גירושין", c: 13, s: "Divorce" }, { b: "נשים", h: "יבום וחליצה", c: 20, s: "Levirate_Marriage_and_Release" }, { b: "נשים", h: "נערה בתולה", c: 3, s: "Virgin_Maiden" }, { b: "נשים", h: "סוטה", c: 4, s: "Woman_Suspected_of_Infidelity" },
+        { b: "קדושה", h: "איסורי ביאה", c: 22, s: "Forbidden_Intercourse" }, { b: "קדושה", h: "מאכלות אסורות", c: 17, s: "Forbidden_Foods" }, { b: "קדושה", h: "שחיטה", c: 14, s: "Ritual_Slaughter" },
+        { b: "הפלאה", h: "שבועות", c: 12, s: "Oaths" }, { b: "הפלאה", h: "נדרים", c: 13, s: "Vows" }, { b: "הפלאה", h: "נזירות", c: 10, s: "Nazirite_Vows" }, { b: "הפלאה", h: "ערכין וחרמין", c: 8, s: "Valuations_and_Devoted_Property" },
+        { b: "זרעים", h: "כלאיים", c: 10, s: "Mixtures" }, { b: "זרעים", h: "מתנות עניים", c: 10, s: "Gifts_to_the_Poor" }, { b: "זרעים", h: "תרומות", c: 15, s: "Heave_Offerings" }, { b: "זרעים", h: "מעשר", c: 14, s: "Tithes" }, { b: "זרעים", h: "מעשר שני", c: 11, s: "Second_Tithes_and_Fourth_Year's_Fruit" }, { b: "זרעים", h: "ביכורים", c: 12, s: "First_Fruits_and_other_Gifts_to_the_Priesthood_in_the_Territories" }, { b: "זרעים", h: "שמיטה ויובל", c: 13, s: "Sabbatical_and_Jubilee_Years" },
+        { b: "עבודה", h: "בית הבחירה", c: 8, s: "The_Chosen_Temple" }, { b: "עבודה", h: "כלי המקדש", c: 10, s: "Vessels_of_the_Sanctuary_and_Those_who_Serve_Therein" }, { b: "עבודה", h: "ביאת המקדש", c: 9, s: "Entrance_into_the_Sanctuary" }, { b: "עבודה", h: "איסורי מזבח", c: 7, s: "Things_Forbidden_offered_upon_the_Altar" }, { b: "עבודה", h: "מעשה הקרבנות", c: 19, s: "Sacrificial_Procedure" }, { b: "עבודה", h: "תמידין ומוספין", c: 10, s: "Daily_Offerings_and_Additional_Offerings" }, { b: "עבודה", h: "פסולי המוקדשין", c: 19, s: "Disqualified_Consecrated_Offerings" }, { b: "עבודה", h: "עבודת יוה\"כ", c: 5, s: "Service_of_the_Day_of_Atonement" }, { b: "עבודה", h: "מעילה", c: 8, s: "Trespass" },
+        { b: "קרבנות", h: "קרבן פסח", c: 10, s: "Paschal_Offering" }, { b: "קרבנות", h: "חגיגה", c: 3, s: "Festival_Offering" }, { b: "קרבנות", h: "בכורות", c: 8, s: "Firstborns" }, { b: "קרבנות", h: "שגגות", c: 15, s: "Offerings_for_Unintentional_Transgressions" }, { b: "קרבנות", h: "מחוסרי כפרה", c: 5, s: "Those_Whose_Atonement_is_Incomplete" }, { b: "קרבנות", h: "תמורה", c: 4, s: "Substitution" },
+        { b: "טהרה", h: "טומאת מת", c: 25, s: "Uncleanness_of_the_Dead" }, { b: "טהרה", h: "פרה אדומה", c: 15, s: "Red_Heifer" }, { b: "טהרה", h: "טומאת צרעת", c: 16, s: "Uncleanness_of_Leprosy" }, { b: "טהרה", h: "מטמאי משכב", c: 13, s: "Those_Who_Defile_Bed_or_Seat" }, { b: "טהרה", h: "שאר אבות הטומאות", c: 20, s: "Other_Primary_Sources_of_Uncleanness" }, { b: "טהרה", h: "טומאת אוכלין", c: 16, s: "Uncleanness_of_Foodstuffs" }, { b: "טהרה", h: "כלים", c: 28, s: "Vessels" }, { b: "טהרה", h: "מקואות", c: 11, s: "Immersion_Pools" },
+        { b: "נזיקין", h: "נזקי ממון", c: 14, s: "Damages_to_Property" }, { b: "נזיקין", h: "גניבה", c: 9, s: "Theft" }, { b: "נזיקין", h: "גזילה ואבידה", c: 18, s: "Robbery_and_Lost_Property" }, { b: "נזיקין", h: "חובל ומזיק", c: 8, s: "One_Who_Injures_a_Person_or_Damages_Property" }, { b: "נזיקין", h: "רוצח ושמירת נפש", c: 13, s: "Murder_and_the_Preservation_of_Life" },
+        { b: "קניין", h: "מכירה", c: 30, s: "Sales" }, { b: "קניין", h: "זכייה ומתנה", c: 12, s: "Original_Acquisition_and_Gifts" }, { b: "קניין", h: "שכנים", c: 14, s: "Neighbors" }, { b: "קניין", h: "שותפין", c: 10, s: "Partners" }, { b: "קניין", h: "עבדים", c: 9, s: "Slaves" },
+        { b: "משפטים", h: "שכירות", c: 13, s: "Hiring" }, { b: "משפטים", h: "שאלה ופיקדון", c: 8, s: "Borrowing_and_Deposit" }, { b: "משפטים", h: "מלווה ולווה", c: 27, s: "Creditor_and_Debtor" }, { b: "משפטים", h: "טוען ונטען", c: 16, s: "Plaintiff_and_Defendant" }, { b: "משפטים", h: "נחלות", c: 11, s: "Inheritances" },
+        { b: "שופטים", h: "סנהדרין", c: 26, s: "The_Sanhedrin_and_the_Penalties_within_their_Jurisdiction" }, { b: "שופטים", h: "עדות", c: 22, s: "Testimony" }, { b: "שופטים", h: "ממרים", c: 7, s: "Rebels" }, { b: "שופטים", h: "אבל", c: 14, s: "Mourning" }, { b: "שופטים", h: "מלכים ומלחמות", c: 12, s: "Kings_and_Wars" }
+    ];
 
     function getGematria(n) {
         if (n <= 0) return "";
@@ -200,12 +152,30 @@
 
     let completed = JSON.parse(localStorage.getItem('rambamDone')) || [];
     let pace = parseInt(localStorage.getItem('rambamPace')) || 1;
+    let reminderTime = localStorage.getItem('rambamReminder') || "";
 
     window.onload = function() {
         if (!localStorage.getItem('rambamStart')) localStorage.setItem('rambamStart', '2026-01-16');
         document.getElementById('dateInput').value = localStorage.getItem('rambamStart');
+        document.getElementById('reminderTime').value = reminderTime;
         init(); jumpToToday();
+        setInterval(checkReminder, 60000);
     };
+
+    function checkReminder() {
+        if (!reminderTime) return;
+        const now = new Date();
+        const currentTime = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
+        if (currentTime === reminderTime) {
+            new Notification("זמן לימוד רמב\"ם!", { body: "אשריך! הגיע הזמן לפרק היומי.", icon: "icon.png" });
+        }
+    }
+
+    function requestNotificationPermission() {
+        Notification.requestPermission().then(p => { if (p === "granted") alert("מעולה! התראות הופעלו."); });
+    }
+
+    function updateReminderTime(v) { reminderTime = v; localStorage.setItem('rambamReminder', v); }
 
     function init() {
         const books = [...new Set(rambamData.map(i => i.b))];
@@ -216,16 +186,18 @@
     }
 
     function updateHalacha() {
+        const b = document.getElementById('bookSelect').value;
         const hSel = document.getElementById('halachaSelect'); hSel.innerHTML = "";
-        rambamData.filter(i => i.b === document.getElementById('bookSelect').value).forEach(i => {
+        rambamData.filter(i => i.b === b).forEach(i => {
             let o = document.createElement('option'); o.value = i.h; o.text = "הלכות " + i.h; hSel.add(o);
         });
         render();
     }
 
     function updateSyncHalacha() {
+        const b = document.getElementById('syncBook').value;
         const hSel = document.getElementById('syncHalacha'); hSel.innerHTML = "";
-        rambamData.filter(i => i.b === document.getElementById('syncBook').value).forEach(i => {
+        rambamData.filter(i => i.b === b).forEach(i => {
             let o = document.createElement('option'); o.value = i.h; o.text = "הלכות " + i.h; hSel.add(o);
         });
         updateSyncPerekList();
@@ -236,11 +208,7 @@
         const h = document.getElementById('syncHalacha').value;
         const pSel = document.getElementById('syncPerekSelect'); pSel.innerHTML = "";
         const unit = rambamData.find(i => i.b === b && i.h === h);
-        if (unit) {
-            for (let i = 1; i <= unit.c; i++) {
-                let o = document.createElement('option'); o.value = i; o.text = "פרק " + getGematria(i); pSel.add(o);
-            }
-        }
+        if (unit) { for (let i = 1; i <= unit.c; i++) { let o = document.createElement('option'); o.value = i; o.text = "פרק " + getGematria(i); pSel.add(o); } }
     }
 
     function syncFromLocation() {
@@ -248,13 +216,9 @@
         const h = document.getElementById('syncHalacha').value;
         const p = parseInt(document.getElementById('syncPerekSelect').value);
         let global = 0;
-        for (let i of rambamData) {
-            if (i.b === b && i.h === h) { global += p; break; }
-            global += i.c;
-        }
+        for (let i of rambamData) { if (i.b === b && i.h === h) { global += p; break; } global += i.c; }
         const days = Math.ceil((global - 1) / pace);
-        const d = new Date(); d.setHours(0,0,0,0);
-        d.setDate(d.getDate() - days);
+        const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - days);
         localStorage.setItem('rambamStart', d.toISOString().split('T')[0]);
         location.reload();
     }
@@ -262,12 +226,10 @@
     function jumpToToday() {
         const start = new Date(localStorage.getItem('rambamStart'));
         const today = new Date(); today.setHours(0,0,0,0);
-        const target = (Math.floor((today - start) / 86400000) * pace) + 1;
+        const diffDays = Math.floor((today - start) / 86400000);
+        const target = (diffDays * pace) + 1;
         let c = 0;
-        for (let i of rambamData) {
-            if (target <= c + i.c) { document.getElementById('bookSelect').value = i.b; updateHalacha(); document.getElementById('halachaSelect').value = i.h; break; }
-            c += i.c;
-        }
+        for (let i of rambamData) { if (target <= c + i.c) { document.getElementById('bookSelect').value = i.b; updateHalacha(); document.getElementById('halachaSelect').value = i.h; break; } c += i.c; }
         render();
     }
 
@@ -275,33 +237,30 @@
         const start = new Date(localStorage.getItem('rambamStart'));
         const today = new Date(); today.setHours(0,0,0,0);
         const diffDays = Math.floor((today - start) / 86400000);
-        const day = diffDays + 1;
         const target = (diffDays * pace) + 1;
-        
-        document.getElementById('dayDisplay').innerText = day;
+        document.getElementById('dayDisplay').innerText = diffDays + 1;
         document.getElementById('totalDisplay').innerText = completed.length + "/1000";
         document.getElementById('progressBar').style.width = (completed.length / 10) + "%";
-
         const lag = target - completed.length;
         const gMsg = document.getElementById('gapMsg');
-        if (lag > 0) { gMsg.innerText = `פיגור: ${lag} פרקים מהתכנית`; gMsg.style.color = "var(--danger)"; }
+        if (lag > 0) { gMsg.innerText = `פיגור: ${lag} פרקים`; gMsg.style.color = "var(--danger)"; }
         else if (lag < 0) { gMsg.innerText = `הקדמה: ${Math.abs(lag)} פרקים!`; gMsg.style.color = "var(--success)"; }
         else { gMsg.innerText = "בקצב המדויק! אשריך"; gMsg.style.color = "var(--success)"; }
-
         const b = document.getElementById('bookSelect').value;
         const h = document.getElementById('halachaSelect').value;
         document.getElementById('listTitle').innerText = h;
-
         let html = ""; let gc = 0;
         for (let i of rambamData) {
             if (i.b === b && i.h === h) {
                 for (let p = 1; p <= i.c; p++) {
                     const idx = gc + p;
                     const done = completed.includes(idx);
-                    const isTarget = idx >= target && idx < target + pace;
-                    html += `<div class="chapter-item ${done?'completed':''} ${isTarget?'is-target':''}">
+                    const isT = idx >= target && idx < target + pace;
+                    const link = `https://www.sefaria.org.il/Mishneh_Torah%2C_${i.s}.${p}?lang=he`;
+                    html += `<div class="chapter-item ${done?'completed':''} ${isT?'is-target':''}">
                         <input type="checkbox" ${done?'checked':''} onclick="toggle(${idx})">
-                        <span class="chapter-label">פרק ${getGematria(p)} ${isTarget?'<b style="color:var(--accent); font-size:11px;">(היעד)</b>':''}</span>
+                        <span class="chapter-label">פרק ${getGematria(p)}</span>
+                        <a href="${link}" target="_blank" class="btn-learn">למידה</a>
                     </div>`;
                 } break;
             } gc += i.c;
@@ -310,10 +269,8 @@
     }
 
     function toggle(i) {
-        let p = completed.indexOf(i);
-        if(p > -1) completed.splice(p, 1); else completed.push(i);
-        localStorage.setItem('rambamDone', JSON.stringify(completed));
-        render();
+        let p = completed.indexOf(i); if(p > -1) completed.splice(p, 1); else completed.push(i);
+        localStorage.setItem('rambamDone', JSON.stringify(completed)); render();
     }
 
     function markAllDone() {
@@ -321,14 +278,8 @@
         const h = document.getElementById('halachaSelect').value;
         if(!confirm(`לסמן את כל הלכות ${h} כנלמד?`)) return;
         let gc = 0;
-        rambamData.forEach(item => {
-            for(let p=1; p<=item.c; p++) {
-                gc++;
-                if(item.b === b && item.h === h && !completed.includes(gc)) completed.push(gc);
-            }
-        });
-        localStorage.setItem('rambamDone', JSON.stringify(completed));
-        render();
+        rambamData.forEach(item => { for(let p=1; p<=item.c; p++) { gc++; if(item.b === b && item.h === h && !completed.includes(gc)) completed.push(gc); } });
+        localStorage.setItem('rambamDone', JSON.stringify(completed)); render();
     }
 
     function toggleSettings() { let s = document.getElementById('settings').style; s.display = s.display==='block'?'none':'block'; }
@@ -339,9 +290,7 @@
         const b = new Blob([JSON.stringify(d)], {type:'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'rambam_backup.json'; a.click();
     }
-    
     if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); }); }
 </script>
 </body>
 </html>
-
