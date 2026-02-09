@@ -46,4 +46,50 @@
         { b: "זרעים", h: "כלאיים", c: 10 }, { b: "זרעים", h: "מתנות עניים", c: 10 }, { b: "זרעים", h: "תרומות", c: 15 }, { b: "זרעים", h: "מעשר", c: 14 }, { b: "זרעים", h: "מעשר שני", c: 11 }, { b: "זרעים", h: "ביכורים", c: 12 }, { b: "זרעים", h: "שמיטה ויובל", c: 13 },
         { b: "עבודה", h: "בית הבחירה", c: 8 }, { b: "עבודה", h: "כלי המקדש", c: 10 }, { b: "עבודה", h: "ביאת המקדש", c: 9 }, { b: "עבודה", h: "איסורי מזבח", c: 7 }, { b: "עבודה", h: "מעשה הקרבנות", c: 19 }, { b: "עבודה", h: "תמידין ומוספין", c: 10 }, { b: "עבודה", h: "פסולי המוקדשין", c: 19 }, { b: "עבודה", h: "עבודת יוה\"כ", c: 5 }, { b: "עבודה", h: "מעילה", c: 8 },
         { b: "קרבנות", h: "קרבן פסח", c: 10 }, { b: "קרבנות", h: "חגיגה", c: 3 }, { b: "קרבנות", h: "בכורות", c: 8 }, { b: "קרבנות", h: "שגגות", c: 15 }, { b: "קרבנות", h: "מחוסרי כפרה", c: 5 }, { b: "קרבנות", h: "תמורה", c: 4 },
-        { b: "טהרה", h: "טומאת מת", c: 25 }, { b: "טהרה", h: "פרה אדומה", c: 15 }, { b: "טהרה", h: "טומאת צרעת", c: 16 }, { b: "טהרה", h: "מטמאי משכב", c: 13 }, { b: "טהרה", h: "שאר אבות הטומאות", c: 20 }, { b: "טהרה", h: "טומאת אוכלין", c: 16 }, { b: "טהרה", h:
+        { b: "טהרה", h: "טומאת מת", c: 25 }, { b: "טהרה", h: "פרה אדומה", c: 15 }, { b: "טהרה", h: "טומאת צרעת", c: 16 }, { b: "טהרה", h: "מטמאי משכב", c: 13 }, { b: "טהרה", h: "שאר אבות הטומאות", c: 20 }, { b: "טהרה", h: "טומאת אוכלין", c: 16 }, { b: "טהרה", h: "כלים", c: 28 }, { b: "טהרה", h: "מקואות", c: 11 },
+        { b: "נזיקין", h: "נזקי ממון", c: 14 }, { b: "נזיקין", h: "גניבה", c: 9 }, { b: "נזיקין", h: "גזילה ואבידה", c: 18 }, { b: "נזיקין", h: "חובל ומזיק", c: 8 }, { b: "נזיקין", h: "רוצח ושמירת נפש", c: 13 },
+        { b: "קניין", h: "מכירה", c: 30 }, { b: "קניין", h: "זכייה ומתנה", c: 12 }, { b: "קניין", h: "שכנים", c: 14 }, { b: "קניין", h: "שותפין", c: 10 }, { b: "קניין", h: "עבדים", c: 9 },
+        { b: "משפטים", h: "שכירות", c: 13 }, { b: "משפטים", h: "שאלה ופיקדון", c: 8 }, { b: "משפטים", h: "מלווה ולווה", c: 27 }, { b: "משפטים", h: "טוען ונטען", c: 16 }, { b: "משפטים", h: "נחלות", c: 11 },
+        { b: "שופטים", h: "סנהדרין", c: 26 }, { b: "שופטים", h: "עדות", c: 22 }, { b: "שופטים", h: "ממרים", ch: 7 }, { b: "שופטים", h: "אבל", c: 14 }, { b: "שופטים", h: "מלכים ומלחמות", c: 12 }
+    ];
+
+    window.onload = function() {
+        const saved = localStorage.getItem('rambamStartDate');
+        if (saved) {
+            document.getElementById('startInput').value = saved;
+            calculate();
+        }
+    };
+
+    function calculate() {
+        const input = document.getElementById('startInput').value;
+        if (!input) return;
+        localStorage.setItem('rambamStartDate', input);
+
+        const start = new Date(input);
+        const today = new Date();
+        start.setHours(0,0,0,0);
+        today.setHours(0,0,0,0);
+
+        const diffDays = Math.floor((today - start) / (1000 * 60 * 60 * 24));
+        if (diffDays < 0) return;
+
+        const currentPerekTotal = (diffDays % 1000) + 1;
+        let count = 0;
+
+        for (const item of rambamData) {
+            if (currentPerekTotal <= count + item.c) {
+                document.getElementById('locText').innerText = `ספר ${item.b}, הלכות ${item.h}`;
+                document.getElementById('perekText').innerText = `פרק ${currentPerekTotal - count}`;
+                break;
+            }
+            count += item.c;
+        }
+
+        document.getElementById('statsText').innerText = `יום ${diffDays + 1} ללימוד (פרק ${currentPerekTotal} מתוך 1000)`;
+        document.getElementById('resBox').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
